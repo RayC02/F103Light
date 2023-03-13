@@ -32,5 +32,10 @@ test\main.o: ../Core/Inc/dma.h
 test\main.o: ../Core/Inc/tim.h
 test\main.o: ../Core/Inc/usart.h
 test\main.o: ../Core/Inc/gpio.h
+test\main.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+test\main.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
+test\main.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 test\main.o: ../Core/Inc/car.h
 test\main.o: ../Core/Inc/cmd.h
+test\main.o: ../Core/Inc/esp.h
+test\main.o: ../Core/Inc/ir.h

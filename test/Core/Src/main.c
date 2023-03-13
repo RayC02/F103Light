@@ -26,15 +26,19 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stdio.h"
+#include "stdlib.h"
+#include "string.h"
 #include "car.h"
 #include "cmd.h"
+#include "esp.h"
+#include "ir.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
-
+#define REMOTE_ID 0
 
 /* USER CODE END PTD */
 
@@ -50,11 +54,12 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint8_t RX_raspi[];
-extern uint16_t recv_end_flag;
-extern uint16_t rx_len;
-extern uint16_t BUFFER_SIZE;
-extern uint8_t uart1_rx_buffer[];
+	uint8_t uart2_rx[]={0};	
+	uint8_t value1[100]={0};
+
+	uint32_t temp = 0;//用于接收数据
+
+	uint16_t i =0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -65,6 +70,10 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void uartcall(void);
+uint8_t Remote_Scan(void);
+	
+
+
 //void Usart_Cont1(void);
 /* USER CODE END 0 */
 
@@ -99,28 +108,33 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM2_Init();
   MX_DMA_Init();
+  MX_USART2_UART_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  HAL_UART_Transmit(&huart1,(uint8_t *)"hello",6,1000);
-	printf("STM32-Raspi-ROSrebotcar");
-	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
-	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_3);
-	//__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE); 
-	//HAL_UART_Receive_DMA(&huart1,(uint8_t *)&uart1_rx_buffer,BUFFER_SIZE);
-	HAL_UART_Receive_IT(&huart1,(uint8_t *)&RX_raspi,sizeof((uint8_t *)&RX_raspi));;	
+  //HAL_UART_Transmit(&huart1,(uint8_t *)"hello",6,1000);
+	//HAL_UART_Transmit(&huart2,(uint8_t *)"hello",6,1000);
+	printf("STM32rebotcar");
 
-	/*
-  //初始�? 字符串命令和对应函数
-  CMD_Name_Func car_cmds[] =
-   {
-        {"go", LeftMotor_Go},                       // �?个结构体变量大小�? 12 (字符串大�?10 + 函数名大�?2)
-        {"back",LeftMotor_Back },                     // �?个结构体变量大小�? 12
-        {"stop", LeftMotor_Stop},
-   };
- 
-    //将命令添加到列表�?
-    register_cmds( car_cmds, ARRAY_SIZE(car_cmds));	// ARRAY_SIZE 用来计算结构体数组中，数组的个数。个�?=结构体�?�长�?/单个数组长度
-*/
+	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_3);
+	HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
+	
+		HAL_TIM_Base_Start_IT(&htim3); 
+	HAL_TIM_IC_Start_IT(&htim3,TIM_CHANNEL_1); 
+	__HAL_TIM_ENABLE_IT(&htim3, TIM_IT_UPDATE); 
+	
+	__HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE); 
+	HAL_UART_Receive_DMA(&huart1,uart1_rx_buffer,BUFFER_SIZE);
+
+	
+	__HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE); 
+	HAL_UART_Receive_DMA(&huart2,uart2_rx_buffer,BUFFER_SIZE);
+	
+	
+				int pwm_val=1000;
+                                                                                              
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -130,12 +144,96 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-		HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
-		HAL_Delay(200);
-		uartcall();
-		//Usart_Cont1();
-		//match_cmd((char*)RX_raspi);
+	
+
+		if (IR_Scanf(&temp))
+		{
+			printf("%#X\r\n", temp);
+		}
+		switch(temp)	{													
+			case ir1:
+				MotorControl(3,1000,1000);
+				temp=0;
+			break;
+			
+			case ir2:
+				MotorControl(0,1000,1000);
+			temp=0;
+			break;
+			
+			case ir3:
+				MotorControl(2,1000,1000);
+			temp=0;
+			break;
+			
+			case ir5:
+				MotorControl(4,1000,1000);
+			temp=0;
+			break;
+			
+			case ir7:
+				MotorControl(5,1000,1000);
+			temp=0;
+			break;
+			
+			case ir8:
+				MotorControl(1,1000,1000);
+			temp=0;
+			break;
+			
+			case ir9:
+				MotorControl(6,1000,1000);
+			temp=0;
+			break;
+			
+			case ir4:
+        pwm_val=pwm_val-100;
+				MotorControl(2,pwm_val,pwm_val);
+			temp=0;
+			break;
+			case ir6:
+        pwm_val=pwm_val+100;
+				MotorControl(3,pwm_val,pwm_val);
+			temp=0;
+			break;
+			default:
+				break;
+		}
+	
 		
+	/*
+										
+		for(i=0;i<1;i++)
+	{
+		while(!(USART1->SR & (1<<5))){};
+		value1[i]=USART1->DR;
+	}
+			printf("%s",value1);
+      if(value1[0] == 0x67)																//g
+      {
+								HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
+				MotorControl(0,1000,1000);
+			}
+			else if(value1[0] == 0x62)									//b
+       {
+								HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
+					MotorControl(1,1000,1000);
+        }
+       else if(value1[0] == 0x72)									//r
+       {				HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
+					MotorControl(2,1000,1000);
+        }
+			 else if(value1[0] == 0x6c)									//l
+       {				HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
+					MotorControl(3,1000,1000);
+        }
+			 else if(value1[0] == 0x73)									//s
+       {				HAL_GPIO_TogglePin(GPIOC,GPIO_PIN_13);
+					MotorControl(4,0,0);
+        }
+			 memset(value1, 0, sizeof(value1));
+ */
+
 	}
 
 	
@@ -181,7 +279,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void uartcall()
+/*void uartcall()
 {
 	uint8_t value1[3]={0};
 	uint8_t i;
@@ -193,57 +291,39 @@ void uartcall()
 	value1[2]='\0';
 	if(!(strcmp((const char *)value1,"go")))
 	{
-			MotorControl(0,200);
+			MotorControl(0,200,200);
 	}
 	else if(!(strcmp((const char *)value1,"bk")))
 	{
-			MotorControl(1,200);
+			MotorControl(1,200,200);
+	}
+		else if(!(strcmp((const char *)value1,"rg")))
+	{
+			MotorControl(2,200,0);
+	}
+		else if(!(strcmp((const char *)value1,"lg")))
+	{
+			MotorControl(3,0,200);
 	}
 	else if(!(strcmp((const char *)value1,"st")))
 	{
-			MotorControl(2,0);
+			MotorControl(4,0,0);
 	}
 }
-/*void Usart_Cont1(void)
+*/
+void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)//捕获回调函数
 {
-	uint8_t value[2];
-	uint8_t i;
-	for(i=0;i<2;i++)
+	if (TIM3 == htim->Instance)
 	{
-		while(!(USART1->SR & (1<<5))){};
-		value[i]=USART1->DR;
+		IR_CaptureCallback();
 	}
-	switch(value[0])
-	{
-		case '0':
-			if(value[1]=='1')
-			{
-				MotorControl(0,200);
-			}
-			else if(value[1]=='2')
-			{
-				MotorControl(1,200);
-			}
-			else if(value[1]=='3')
-			{
-				MotorControl(0,0);
-			}	
-			break;
-		case '1':
-			if(value[1]=='1')
-			{
-				MotorControl(1,8000);
-			}
-				
-			break;
-	}
-}*/
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-	HAL_UART_Transmit(&huart1,(uint8_t *)&RX_raspi,sizeof((uint8_t *)&RX_raspi),100);	
-	HAL_UART_Receive_IT(&huart1,(uint8_t *)&RX_raspi,sizeof((uint8_t *)&RX_raspi));	
 }
 
+/*void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+	HAL_UART_Transmit(&huart1, uart2_rx,sizeof( uart2_rx),100);	
+	HAL_UART_Receive_IT(&huart2, uart2_rx,sizeof( uart2_rx));	
+}*/
 
 /* USER CODE END 4 */
 

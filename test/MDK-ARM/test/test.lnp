@@ -2,6 +2,8 @@
 "test\startup_stm32f103xb.o"
 "test\car.o"
 "test\cmd.o"
+"test\esp.o"
+"test\ir.o"
 "test\main.o"
 "test\gpio.o"
 "test\dma.o"

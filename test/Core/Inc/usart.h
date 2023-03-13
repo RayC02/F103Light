@@ -32,12 +32,21 @@ extern "C" {
 /* USER CODE END Includes */
 
 extern UART_HandleTypeDef huart1;
+extern UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN Private defines */
+#define BUFFER_SIZE  600    
 
+extern volatile uint8_t rx_len;  
+extern volatile uint8_t recv_end_flag; 
+extern uint8_t uart1_rx_buffer[BUFFER_SIZE];  
+extern volatile uint8_t rx2_len;  
+extern volatile uint8_t recv_end_flag2; 
+extern uint8_t uart2_rx_buffer[BUFFER_SIZE];  
 /* USER CODE END Private defines */
 
 void MX_USART1_UART_Init(void);
+void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 

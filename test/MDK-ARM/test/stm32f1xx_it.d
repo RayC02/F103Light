@@ -29,3 +29,4 @@ test\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 test\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 test\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
 test\stm32f1xx_it.o: ../Core/Inc/stm32f1xx_it.h
+test\stm32f1xx_it.o: ../Core/Inc/usart.h
